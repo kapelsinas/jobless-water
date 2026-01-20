@@ -39,6 +39,7 @@ export class Payment {
 
   @Column({
     type: 'varchar',
+    length: 2000,
     nullable: true,
     comment: 'Token returned by payment provider',
   })
