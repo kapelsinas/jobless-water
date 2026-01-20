@@ -11,8 +11,16 @@ export async function withTransaction<T>(
   dataSource: DataSource,
   work: (entityManager: EntityManager) => Promise<T>,
 ): Promise<T> {
-  return dataSource.transaction(async (entityManager) => {
-    return work(entityManager);
+  return new Promise((resolve, reject) => {
+    transactionNamespace.run(() => {
+      dataSource
+        .transaction(async (entityManager) => {
+          transactionNamespace.set('entityManager', entityManager);
+          return work(entityManager);
+        })
+        .then(resolve)
+        .catch(reject);
+    });
   });
 }
 
