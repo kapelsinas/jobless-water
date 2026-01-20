@@ -1,3 +1,7 @@
+export type PrimerClientSessionOptions = {
+  idempotencyKey: string;
+};
+
 export type PrimerClientSessionRequest = {
   orderId: string;
   amount: number;

@@ -8,7 +8,7 @@ import { PaymentService } from '../services/payment.service';
 @Controller('payments')
 @UseGuards(ThrottlerGuard)
 export class PaymentController {
-  constructor(private readonly paymentService: PaymentService) { }
+  constructor(private readonly paymentService: PaymentService) {}
 
   @Post('init')
   @Throttle({

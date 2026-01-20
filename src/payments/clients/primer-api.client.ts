@@ -8,6 +8,7 @@ import { AppException } from '../../common/exceptions/app.exception';
 import { AppConfig } from '../../config/app.config';
 
 import {
+  PrimerClientSessionOptions,
   PrimerClientSessionRequest,
   PrimerClientSessionResponse,
   PrimerErrorResponse,
@@ -31,6 +32,7 @@ export class PrimerApiClient {
 
   async createClientSession(
     data: PrimerClientSessionRequest,
+    options: PrimerClientSessionOptions,
   ): Promise<PrimerClientSessionResponse> {
     const response = await firstValueFrom(
       this.httpService
@@ -40,6 +42,7 @@ export class PrimerApiClient {
             'X-Api-Key': this.apiKey,
             'X-Api-Version': '2.2',
             'Content-Type': 'application/json',
+            'Idempotency-Key': options.idempotencyKey,
           },
         })
         .pipe(

@@ -40,6 +40,10 @@ export class PaymentRepository {
     return this.repository.save(payment);
   }
 
+  async save(payment: Payment): Promise<Payment> {
+    return this.repository.save(payment);
+  }
+
   async updateStatusByOrderId(
     orderId: string,
     status: PaymentStatus,

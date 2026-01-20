@@ -22,7 +22,7 @@ export class PaymentService {
 
   async initializePayment(dto: CreatePaymentDto): Promise<PaymentResponseDto> {
     // 1. Ensure record exists in PENDING/COMPLETED state safely
-    const payment = await withTransaction(this.dataSource, async (manager) => {
+    const payment = await withTransaction(this.dataSource, async () => {
       const existing = await this.paymentRepository.findByOrderIdWithLock(
         dto.orderId,
       );
@@ -40,7 +40,7 @@ export class PaymentService {
         existing.status = PaymentStatus.PENDING;
         existing.amount = dto.amount;
         existing.currency = dto.currency;
-        return manager.save(existing);
+        return this.paymentRepository.save(existing);
       }
 
       // Create new PENDING record
@@ -60,11 +60,14 @@ export class PaymentService {
 
     try {
       // 2. Call Primer API for session
-      const primerSession = await this.primerApiClient.createClientSession({
-        orderId: dto.orderId,
-        amount: dto.amount,
-        currencyCode: dto.currency,
-      });
+      const primerSession = await this.primerApiClient.createClientSession(
+        {
+          orderId: dto.orderId,
+          amount: dto.amount,
+          currencyCode: dto.currency,
+        },
+        { idempotencyKey: dto.orderId },
+      );
 
       // 3. Update to COMPLETED
       await this.paymentRepository.updateStatusByOrderId(
@@ -73,14 +76,13 @@ export class PaymentService {
         primerSession.clientToken,
       );
 
-      // Fetch final state for response
+      // 4. Fetch final state for response
       const updated = await this.paymentRepository.findByOrderId(dto.orderId);
       if (!updated) {
-        throw new Error('Payment record disappeared');
+        throw new Error('Payment not found');
       }
       return this.mapToResponseDto(updated);
     } catch (error) {
-      // 4. Handle failure persistence
       this.logger.error(
         `Failed to initialize payment for order ${dto.orderId}: ${
           error instanceof Error ? error.message : String(error)

@@ -68,6 +68,11 @@ describe('PaymentController (integration)', () => {
       currency: validPayload.currency,
     });
 
+    expect(mockPrimerClient.createClientSession).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: validPayload.orderId }),
+      { idempotencyKey: validPayload.orderId },
+    );
+
     const payment = await dataSource
       .getRepository(Payment)
       .findOneBy({ orderId: validPayload.orderId });
