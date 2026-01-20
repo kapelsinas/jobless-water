@@ -1,5 +1,6 @@
 import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppModule } from 'src/app.module';
 import { AllExceptionsFilter } from 'src/common/filters/all.filter';
 import { PrimerApiClient } from 'src/payments/clients/primer-api.client';
@@ -22,6 +23,8 @@ describe('PaymentController (integration)', () => {
     })
       .overrideProvider(PrimerApiClient)
       .useValue(mockPrimerClient)
+      .overrideGuard(ThrottlerGuard)
+      .useValue({ canActivate: () => true })
       .compile();
 
     app = moduleFixture.createNestApplication();
